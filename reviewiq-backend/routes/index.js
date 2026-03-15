@@ -98,5 +98,15 @@ router.get('/form/:clientId', (req, res) => {
   const brandColor = client ? (client.brand_color || '#6366f1') : '#6366f1';
   res.send(generateReviewForm(req.params.clientId, bizName, logoUrl, brandColor));
 });
+const path = require('path');
+router.get('/admin', (req, res) => {
+  res.sendFile(path.join(__dirname, '../reviewiq-admin.html'));
+});
+```
+4. Click **Commit changes**
+
+Then go to:
+```
+https://reviewiq-backend-production.up.railway.app/api/admin
 
 module.exports = router;
