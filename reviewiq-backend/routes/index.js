@@ -161,6 +161,8 @@ router.post('/screening/:id/reject', (req, res) => {
 router.get('/form/:clientId', (req, res) => {
   const client = db.getClient(req.params.clientId);
   const bizName = client ? client.business_name : 'us';
+  const logoUrl = client ? (client.logo_url || '') : '';
+  const brandColor = client ? (client.brand_color || '#6366f1') : '#6366f1';
   res.send(`<!DOCTYPE html>
 <html>
 <head>
@@ -171,53 +173,131 @@ router.get('/form/:clientId', (req, res) => {
     *{box-sizing:border-box;margin:0;padding:0;}
     body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#f8fafc;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
     .card{background:white;border-radius:16px;padding:40px;max-width:480px;width:100%;box-shadow:0 4px 20px rgba(0,0,0,0.08);}
+    .logo-wrap{text-align:center;margin-bottom:24px;}
+    .logo-wrap img{max-height:70px;max-width:220px;object-fit:contain;}
+    .biz-name{text-align:center;font-size:18px;font-weight:700;color:#0f172a;margin-bottom:20px;}
     h1{font-size:22px;color:#0f172a;margin-bottom:8px;}
     p{color:#64748b;font-size:15px;line-height:1.6;margin-bottom:24px;}
-    .stars{display:flex;gap:8px;margin-bottom:24px;font-size:40px;cursor:pointer;}
-    .star{transition:transform 0.1s;color:#e2e8f0;}
-    .star.active{color:#f59e0b;}
-    .star:hover{transform:scale(1.15);}
+    .stars{display:flex;gap:10px;margin-bottom:24px;justify-content:center;}
+    .star{font-size:44px;cursor:pointer;color:#e2e8f0;transition:transform 0.1s,color 0.1s;user-select:none;line-height:1;}
+    .star:hover,.star.active{color:#f59e0b;}
+    .star:hover{transform:scale(1.18);}
     input,textarea{width:100%;border:1.5px solid #e2e8f0;border-radius:10px;padding:12px 14px;font-size:14px;font-family:inherit;color:#0f172a;margin-bottom:14px;}
-    input:focus,textarea:focus{outline:none;border-color:#6366f1;box-shadow:0 0 0 3px rgba(99,102,241,0.15);}
+    input:focus,textarea:focus{outline:none;border-color:${brandColor};box-shadow:0 0 0 3px ${brandColor}26;}
     textarea{resize:vertical;min-height:110px;}
-    button{width:100%;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:white;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;}
-    button:disabled{opacity:0.5;cursor:not-allowed;}
+    button{width:100%;background:${brandColor};color:white;border:none;border-radius:10px;padding:14px;font-size:15px;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity 0.2s;}
+    button:hover:not(:disabled){opacity:0.88;}
+    button:disabled{opacity:0.4;cursor:not-allowed;}
     .label{font-size:11px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.05em;display:block;margin-bottom:8px;}
     .success{text-align:center;padding:20px 0;}
     .success .icon{font-size:60px;margin-bottom:16px;}
     .hidden{display:none;}
     .low-star-msg{background:#fef3c7;border:1px solid #f59e0b;border-radius:10px;padding:16px;margin-bottom:16px;font-size:13px;color:#92400e;line-height:1.6;}
+    .star-label{text-align:center;font-size:13px;color:#64748b;margin-bottom:16px;min-height:20px;}
   </style>
 </head>
 <body>
   <div class="card">
     <div id="form-view">
+      ${logoUrl ? `<div class="logo-wrap"><img src="${logoUrl}" alt="${bizName} logo"/></div>` : `<div class="biz-name">${bizName}</div>`}
       <h1>How was your visit?</h1>
-      <p>Your feedback helps ${bizName} serve patients better.</p>
+      <p>Your feedback helps ${bizName} serve you better. Takes less than a minute.</p>
       <span class="label">Your rating</span>
       <div class="stars" id="stars">
-        <span class="star" data-rating="1">★</span>
-        <span class="star" data-rating="2">★</span>
-        <span class="star" data-rating="3">★</span>
-        <span class="star" data-rating="4">★</span>
-        <span class="star" data-rating="5">★</span>
+        <span class="star" data-rating="1" data-label="Poor">★</span>
+        <span class="star" data-rating="2" data-label="Fair">★</span>
+        <span class="star" data-rating="3" data-label="Good">★</span>
+        <span class="star" data-rating="4" data-label="Great">★</span>
+        <span class="star" data-rating="5" data-label="Excellent!">★</span>
       </div>
-      <div id="low-star-msg" class="low-star-msg hidden">We're sorry to hear that. Your feedback goes directly to the team privately — it will never be posted publicly.</div>
+      <div class="star-label" id="star-label"></div>
+      <div id="low-star-msg" class="low-star-msg hidden">We're sorry to hear that. Your feedback goes directly to the team privately and will never be posted publicly.</div>
       <span class="label">Your name</span>
       <input type="text" id="author" placeholder="First name"/>
       <span class="label">Tell us about your experience</span>
-      <textarea id="review-text" placeholder="What did you love? What could be better?"></textarea>
-      <button id="submit-btn" disabled onclick="submitReview()">Submit</button>
+      <textarea id="review-text" placeholder="What did you love? What could we improve?"></textarea>
+      <button id="submit-btn" disabled onclick="submitReview()">Submit Review</button>
     </div>
     <div id="success-view" class="success hidden">
       <div class="icon">⭐</div>
       <h1>Thank you!</h1>
-      <p style="margin-top:12px;">Your feedback means a lot to us.</p>
+      <p style="margin-top:12px;">Your feedback means a lot to the team at ${bizName}.</p>
     </div>
   </div>
   <script>
     let rating = 0;
     const clientId = '${req.params.clientId}';
+    const labels = {1:'Poor',2:'Fair',3:'Good',4:'Great',5:'Excellent!'};
+    const stars = document.querySelectorAll('.star');
+
+    stars.forEach(star => {
+      star.addEventListener('click', function() {
+        rating = parseInt(this.dataset.rating);
+        stars.forEach(s => {
+          s.classList.toggle('active', parseInt(s.dataset.rating) <= rating);
+        });
+        document.getElementById('star-label').textContent = labels[rating] || '';
+        document.getElementById('low-star-msg').classList.toggle('hidden', rating >= 5);
+        updateBtn();
+      });
+      star.addEventListener('mouseover', function() {
+        const hoverRating = parseInt(this.dataset.rating);
+        stars.forEach(s => {
+          s.style.color = parseInt(s.dataset.rating) <= hoverRating ? '#f59e0b' : '';
+        });
+        document.getElementById('star-label').textContent = labels[hoverRating] || '';
+      });
+      star.addEventListener('mouseout', function() {
+        stars.forEach(s => {
+          s.style.color = '';
+          s.classList.toggle('active', parseInt(s.dataset.rating) <= rating);
+        });
+        document.getElementById('star-label').textContent = rating ? labels[rating] : '';
+      });
+    });
+
+    document.getElementById('author').addEventListener('input', updateBtn);
+    document.getElementById('review-text').addEventListener('input', updateBtn);
+
+    function updateBtn() {
+      const hasRating = rating > 0;
+      const hasAuthor = document.getElementById('author').value.trim().length > 1;
+      const hasText = document.getElementById('review-text').value.trim().length > 10;
+      document.getElementById('submit-btn').disabled = !(hasRating && hasAuthor && hasText);
+    }
+
+    async function submitReview() {
+      document.getElementById('submit-btn').disabled = true;
+      document.getElementById('submit-btn').textContent = 'Submitting...';
+      try {
+        await fetch('/api/clients/' + clientId + '/screening/submit', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify({
+            author: document.getElementById('author').value.trim(),
+            rating,
+            text: document.getElementById('review-text').value.trim()
+          })
+        });
+        document.getElementById('form-view').classList.add('hidden');
+        document.getElementById('success-view').classList.remove('hidden');
+      } catch(e) {
+        document.getElementById('submit-btn').disabled = false;
+        document.getElementById('submit-btn').textContent = 'Try again';
+      }
+    }
+  </script>
+</body>
+</html>`);
+});
+
+// ── LOGO UPLOAD (store URL per client) ───────────────────────────────────────
+router.put('/clients/:id/branding', (req, res) => {
+  const { logo_url, brand_color } = req.body;
+  const client = db.updateClient(req.params.id, { logo_url, brand_color });
+  if (!client) return res.status(404).json({ error: 'Client not found' });
+  res.json({ client, message: 'Branding updated' });
+});
     document.querySelectorAll('.star').forEach(s => {
       s.addEventListener('click', () => {
         rating = parseInt(s.dataset.rating);
