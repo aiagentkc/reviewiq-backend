@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ReviewIQ Admin</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0A0F1E; color: #F8FAFC; min-height: 100vh; }
+
+    /* HEADER */
+    .header { background: #111827; border-bottom: 1px solid #1E2D45; padding: 0 24px; height: 58px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+    .logo { display: flex; align-items: center; gap: 10px; }
+    .logo-icon { width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #6366F1, #8B5CF6); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 15px; }
+    .logo-text { font-size: 15px; font-weight: 800; }
+    .logo-sub { font-size: 9px; color: #64748B; letter-spacing: 0.06em; font-weight: 600; }
+
+    /* LAYOUT */
+    .layout { display: flex; height: calc(100vh - 58px); }
+    .sidebar { width: 200px; background: #111827; border-right: 1px solid #1E2D45; padding: 16px 10px; display: flex; flex-direction: column; gap: 3px; flex-shrink: 0; }
+    .nav-btn { display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-radius: 8px; border: none; background: transparent; color: #94A3B8; font-size: 13px; cursor: pointer; text-align: left; width: 100%; font-family: inherit; transition: all 0.15s; }
+    .nav-btn:hover { background: #1a2235; color: #F8FAFC; }
+    .nav-btn.active { background: linear-gradient(135deg, #6366F1, #8B5CF6); color: white; font-weight: 600; box-shadow: 0 4px 12px rgba(99,102,241,0.28); }
+    .content { flex: 1; overflow-y: auto; padding: 24px; }
+
+    /* CARDS */
+    .card { background: #111827; border: 1px solid #1E2D45; border-radius: 12px; padding: 20px; margin-bottom: 16px; }
+    .card-title { font-size: 12px; font-weight: 700; color: #A5B4FC; margin-bottom: 14px; letter-spacing: 0.04em; text-transform: uppercase; }
+
+    /* GRID */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+
+    /* STAT CARDS */
+    .stat { background: #111827; border: 1px solid #1E2D45; border-radius: 12px; padding: 18px; }
+    .stat-label { font-size: 10px; font-weight: 700; color: #64748B; letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 8px; }
+    .stat-value { font-size: 32px; font-weight: 800; letter-spacing: -0.03em; line-height: 1; }
+    .stat-sub { font-size: 10px; color: #64748B; margin-top: 5px; }
+
+    /* FORMS */
+    .form-group { margin-bottom: 14px; }
+    .form-label { font-size: 11px; font-weight: 600; color: #64748B; display: block; margin-bottom: 6px; letter-spacing: 0.04em; text-transform: uppercase; }
+    .form-input { width: 100%; background: #0A0F1E; border: 1px solid #1E2D45; border-radius: 8px; padding: 9px 12px; color: #F8FAFC; font-size: 13px; font-family: inherit; }
+    .form-input:focus { outline: none; border-color: #6366F1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+    select.form-input { appearance: none; }
+
+    /* BUTTONS */
+    .btn { padding: 8px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; transition: all 0.15s; white-space: nowrap; }
+    .btn:hover { opacity: 0.88; }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary { background: linear-gradient(135deg, #6366F1, #8B5CF6); color: white; box-shadow: 0 4px 12px rgba(99,102,241,0.3); }
+    .btn-success { background: #10B981; color: white; }
+    .btn-danger { background: transparent; color: #EF4444; border: 1px solid rgba(239,68,68,0.3); }
+    .btn-ghost { background: #1a2235; color: #94A3B8; border: 1px solid #1E2D45; }
+    .btn-sm { padding: 5px 12px; font-size: 11px; }
+    .btn-lg { padding: 11px 24px; font-size: 14px; }
+
+    /* TABLE */
+    .table { width: 100%; border-collapse: collapse; }
+    .table th { font-size: 10px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.05em; padding: 8px 12px; border-bottom: 1px solid #1E2D45; text-align: left; }
+    .table td { padding: 12px; font-size: 13px; border-bottom: 1px solid #1E2D45; vertical-align: middle; }
+    .table tr:last-child td { border-bottom: none; }
+    .table tr:hover td { background: #1a2235; }
+
+    /* BADGES */
+    .badge { display: inline-block; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 20px; }
+    .badge-green { background: rgba(16,185,129,0.15); color: #10B981; }
+    .badge-amber { background: rgba(245,158,11,0.15); color: #F59E0B; }
+    .badge-red { background: rgba(239,68,68,0.12); color: #EF4444; }
+    .badge-blue { background: rgba(59,130,246,0.12); color: #3B82F6; }
+    .badge-indigo { background: rgba(99,102,241,0.12); color: #6366F1; }
+
+    /* MISC */
+    .page-title { font-size: 20px; font-weight: 800; letter-spacing: -0.02em; margin-bottom: 4px; }
+    .page-sub { color: #64748B; font-size: 13px; margin-bottom: 20px; }
+    .flex { display: flex; align-items: center; }
+    .flex-between { display: flex; align-items: center; justify-content: space-between; }
+    .gap-8 { gap: 8px; }
+    .gap-12 { gap: 12px; }
+    .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; flex-shrink: 0; }
+    .stars { color: #F59E0B; font-size: 14px; }
+    .empty { text-align: center; padding: 48px; color: #64748B; }
+    .empty-icon { font-size: 40px; margin-bottom: 12px; }
+    .toast { position: fixed; bottom: 24px; right: 24px; z-index: 1000; padding: 12px 20px; border-radius: 12px; font-size: 13px; font-weight: 600; color: white; box-shadow: 0 8px 30px rgba(0,0,0,0.4); animation: fadeIn 0.2s ease; }
+    .modal-overlay { position: fixed; inset: 0; z-index: 500; background: rgba(0,0,0,0.75); backdrop-filter: blur(6px); display: flex; align-items: center; justify-content: center; padding: 24px; }
+    .modal { background: #111827; border: 1px solid #1E2D45; border-radius: 16px; padding: 28px; width: 100%; max-width: 520px; box-shadow: 0 30px 70px rgba(0,0,0,0.6); }
+    .modal-title { font-size: 16px; font-weight: 700; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    .close-btn { background: none; border: none; color: #64748B; font-size: 20px; cursor: pointer; }
+    .divider { border: none; border-top: 1px solid #1E2D45; margin: 16px 0; }
+    .text-green { color: #10B981; }
+    .text-red { color: #EF4444; }
+    .text-amber { color: #F59E0B; }
+    .text-indigo { color: #6366F1; }
+    .text-dim { color: #64748B; }
+    .text-mid { color: #94A3B8; }
+    .copy-url { background: #0A0F1E; border: 1px solid #1E2D45; border-radius: 8px; padding: 10px 14px; font-size: 11px; color: #94A3B8; font-family: monospace; cursor: pointer; word-break: break-all; }
+    .copy-url:hover { border-color: #6366F1; color: #A5B4FC; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+    input[type="color"] { width: 40px; height: 32px; border: 1px solid #1E2D45; border-radius: 6px; padding: 2px; background: #0A0F1E; cursor: pointer; }
+
+    /* LOGIN */
+    .login-screen { position: fixed; inset: 0; background: #0A0F1E; display: flex; align-items: center; justify-content: center; z-index: 9999; }
+    .login-card { background: #111827; border: 1px solid #1E2D45; border-radius: 16px; padding: 40px; width: 100%; max-width: 380px; box-shadow: 0 30px 70px rgba(0,0,0,0.6); text-align: center; }
+    .login-logo { width: 56px; height: 56px; border-radius: 14px; background: linear-gradient(135deg, #6366F1, #8B5CF6); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 24px; margin: 0 auto 16px; }
+    .login-title { font-size: 22px; font-weight: 800; margin-bottom: 4px; }
+    .login-sub { color: #64748B; font-size: 13px; margin-bottom: 28px; }
+    .login-input { width: 100%; background: #0A0F1E; border: 1px solid #1E2D45; border-radius: 10px; padding: 12px 14px; color: #F8FAFC; font-size: 15px; font-family: inherit; margin-bottom: 14px; text-align: center; letter-spacing: 0.1em; }
+    .login-input:focus { outline: none; border-color: #6366F1; box-shadow: 0 0 0 3px rgba(99,102,241,0.15); }
+    .login-btn { width: 100%; background: linear-gradient(135deg, #6366F1, #8B5CF6); color: white; border: none; border-radius: 10px; padding: 13px; font-size: 15px; font-weight: 600; cursor: pointer; font-family: inherit; }
+    .login-error { color: #EF4444; font-size: 13px; margin-bottom: 12px; display: none; }
+  </style>
+</head>
+<body>
+
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" class="login-screen">
+  <div class="login-card">
+    <div class="login-logo">R</div>
+    <div class="login-title">ReviewIQ Admin</div>
+    <div class="login-sub">Enter your password to continue</div>
+    <div class="login-error" id="login-error">Incorrect password. Try again.</div>
+    <input class="login-input" type="password" id="login-pwd" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+  </div>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="logo">
+    <div class="logo-icon">R</div>
+    <div>
+      <div class="logo-text">ReviewIQ</div>
+      <div class="logo-sub">ADMIN PANEL</div>
+    </div>
+  </div>
+  <div class="flex gap-8">
+    <div id="connection-status" class="badge badge-amber">Connecting...</div>
+    <button class="btn btn-ghost btn-sm" onclick="refreshAll()">↺ Refresh</button>
+  </div>
+</div>
+
+<div class="layout">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <button class="nav-btn active" onclick="showPage('dashboard')" id="nav-dashboard">◈ Dashboard</button>
+    <button class="nav-btn" onclick="showPage('clients')" id="nav-clients">👥 Clients</button>
+    <button class="nav-btn" onclick="showPage('add-client')" id="nav-add-client">+ Add Client</button>
+    <button class="nav-btn" onclick="showPage('screening')" id="nav-screening">⚑ Screening</button>
+    <button class="nav-btn" onclick="showPage('reviews')" id="nav-reviews">★ Reviews</button>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content" id="content">
+    <div class="empty"><div class="empty-icon">⚡</div><div>Loading...</div></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast" class="toast" style="display:none"></div>
+
+<script>
+  // ── CONFIG ──────────────────────────────────────────────────────────────────
+  var API = window.location.hostname === 'reviewiq-backend-production.up.railway.app' ? '/api' : 'https://reviewiq-backend-production.up.railway.app/api';
+  // Fallback to relative URL if opened from Railway
+  if (window.location.hostname === 'reviewiq-backend-production.up.railway.app') { var API = '/api'; }
+  var currentPage = 'dashboard';
+  var allClients = [];
+  var selectedClientId = null;
+
+  // ── API HELPERS ─────────────────────────────────────────────────────────────
+  async function api(method, path, body) {
+    try {
+      var opts = { method: method, headers: { 'Content-Type': 'application/json' } };
+      if (body) opts.body = JSON.stringify(body);
+      var res = await fetch(API + path, opts);
+      return await res.json();
+    } catch (e) {
+      console.error('API error:', e);
+      return null;
+    }
+  }
+
+  function toast(msg, type) {
+    var el = document.getElementById('toast');
+    el.textContent = (type === 'error' ? '⚠ ' : '✓ ') + msg;
+    el.style.background = type === 'error' ? '#EF4444' : '#10B981';
+    el.style.display = 'block';
+    setTimeout(function() { el.style.display = 'none'; }, 3000);
+  }
+
+  function stars(n) {
+    var s = '';
+    for (var i = 1; i <= 5; i++) s += i <= n ? '★' : '☆';
+    return '<span class="stars">' + s + '</span>';
+  }
+
+  function avatar(name, size) {
+    var colors = ['#4F46E5','#7C3AED','#0891B2','#0D9488','#059669','#D97706','#DC2626'];
+    var color = colors[name.charCodeAt(0) % colors.length];
+    return '<div class="avatar" style="background:' + color + ';width:' + (size||36) + 'px;height:' + (size||36) + 'px">' + name[0].toUpperCase() + '</div>';
+  }
+
+  function copyText(text) {
+    navigator.clipboard.writeText(text).then(function() { toast('Copied to clipboard!'); });
+  }
+
+  // ── NAVIGATION ──────────────────────────────────────────────────────────────
+  function showPage(page) {
+    currentPage = page;
+    document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
+    var navEl = document.getElementById('nav-' + page);
+    if (navEl) navEl.classList.add('active');
+    var pages = { dashboard: renderDashboard, clients: renderClients, 'add-client': renderAddClient, screening: renderScreening, reviews: renderReviews };
+    if (pages[page]) pages[page]();
+  }
+
+  async function refreshAll() {
+    var data = await api('GET', '/clients');
+    if (data) { allClients = data.clients || []; document.getElementById('connection-status').textContent = '● Connected'; document.getElementById('connection-status').className = 'badge badge-green'; }
+    else { document.getElementById('connection-status').textContent = '✕ Offline'; document.getElementById('connection-status').className = 'badge badge-red'; }
+    showPage(currentPage);
+  }
+
+  // ── DASHBOARD ───────────────────────────────────────────────────────────────
+  async function renderDashboard() {
+    var html = '<div class="page-title">Dashboard</div><div class="page-sub">ReviewIQ overview</div>';
+    html += '<div class="grid-4" style="margin-bottom:20px">';
+    html += '<div class="stat"><div class="stat-label">Total Clients</div><div class="stat-value" style="color:#6366F1">' + allClients.length + '</div><div class="stat-sub">Active accounts</div></div>';
+    
+    var totalReviews = 0, totalScreening = 0, totalRequests = 0;
+    for (var i = 0; i < allClients.length; i++) {
+      var s = await api('GET', '/clients/' + allClients[i].id + '/stats');
+      if (s) { totalReviews += s.totalReviews || 0; totalScreening += s.pendingScreening || 0; totalRequests += s.requestsSent || 0; }
+    }
+    
+    html += '<div class="stat"><div class="stat-label">Total Reviews</div><div class="stat-value" style="color:#F59E0B">' + totalReviews + '</div><div class="stat-sub">Across all clients</div></div>';
+    html += '<div class="stat"><div class="stat-label">Pending Screening</div><div class="stat-value" style="color:#EF4444">' + totalScreening + '</div><div class="stat-sub">Awaiting approval</div></div>';
+    html += '<div class="stat"><div class="stat-label">Requests Sent</div><div class="stat-value" style="color:#10B981">' + totalRequests + '</div><div class="stat-sub">Review requests</div></div>';
+    html += '</div>';
+
+    html += '<div class="card"><div class="card-title">All Clients</div>';
+    if (allClients.length === 0) {
+      html += '<div class="empty"><div class="empty-icon">👥</div><div>No clients yet — <a href="#" onclick="showPage(\'add-client\')" style="color:#6366F1">add your first client</a></div></div>';
+    } else {
+      html += '<table class="table"><thead><tr><th>Business</th><th>Plan</th><th>Review Form</th><th>Actions</th></tr></thead><tbody>';
+      allClients.forEach(function(c) {
+        var formUrl = 'https://reviewiq-backend-production.up.railway.app/api/form/' + c.id;
+        html += '<tr>';
+        html += '<td><div class="flex gap-8">' + avatar(c.business_name) + '<div><div style="font-weight:600">' + c.business_name + '</div><div style="font-size:11px;color:#64748B">' + (c.email || 'No email') + '</div></div></div></td>';
+        html += '<td><span class="badge badge-indigo">' + (c.plan || 'starter').toUpperCase() + '</span></td>';
+        html += '<td><span class="copy-url" onclick="copyText(\'' + formUrl + '\')" title="Click to copy">' + formUrl.replace('https://reviewiq-backend-production.up.railway.app', '...railway.app') + '</span></td>';
+        html += '<td><div class="flex gap-8"><button class="btn btn-ghost btn-sm" onclick="viewClient(\'' + c.id + '\')">Manage</button></div></td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table>';
+    }
+    html += '</div>';
+    document.getElementById('content').innerHTML = html;
+  }
+
+  // ── CLIENTS ─────────────────────────────────────────────────────────────────
+  async function renderClients() {
+    var html = '<div class="flex-between" style="margin-bottom:20px"><div><div class="page-title">Clients</div><div class="page-sub">Manage all your business accounts</div></div><button class="btn btn-primary" onclick="showPage(\'add-client\')">+ Add Client</button></div>';
+    
+    if (allClients.length === 0) {
+      html += '<div class="card"><div class="empty"><div class="empty-icon">👥</div><div style="font-size:15px;font-weight:600;margin-bottom:8px">No clients yet</div><div>Add your first client to get started</div><br><button class="btn btn-primary" onclick="showPage(\'add-client\')">+ Add First Client</button></div></div>';
+    } else {
+      allClients.forEach(function(c) {
+        var formUrl = 'https://reviewiq-backend-production.up.railway.app/api/form/' + c.id;
+        html += '<div class="card">';
+        html += '<div class="flex-between" style="margin-bottom:16px">';
+        html += '<div class="flex gap-12">' + avatar(c.business_name, 44) + '<div><div style="font-size:16px;font-weight:700">' + c.business_name + '</div><div style="font-size:12px;color:#64748B;margin-top:2px">' + (c.owner_name || '') + (c.email ? ' · ' + c.email : '') + '</div></div></div>';
+        html += '<div class="flex gap-8"><span class="badge badge-indigo">' + (c.plan || 'starter').toUpperCase() + '</span><button class="btn btn-primary btn-sm" onclick="viewClient(\'' + c.id + '\')">Manage →</button></div>';
+        html += '</div>';
+        html += '<div style="background:#0A0F1E;border-radius:8px;padding:12px;margin-bottom:12px">';
+        html += '<div style="font-size:10px;color:#64748B;font-weight:600;margin-bottom:6px">REVIEW FORM LINK — share this with the business</div>';
+        html += '<div class="copy-url" onclick="copyText(\'' + formUrl + '\')">' + formUrl + '</div>';
+        html += '</div>';
+        html += '<div class="flex gap-8"><button class="btn btn-ghost btn-sm" onclick="openBranding(\'' + c.id + '\',\'' + c.business_name + '\')">🎨 Set Logo & Colors</button><button class="btn btn-ghost btn-sm" onclick="viewClient(\'' + c.id + '\')">👥 Add Customers</button><button class="btn btn-ghost btn-sm" onclick="window.open(\'' + formUrl + '\',\'_blank\')">👁 Preview Form</button></div>';
+        html += '</div>';
+      });
+    }
+    document.getElementById('content').innerHTML = html;
+  }
+
+  // ── ADD CLIENT ──────────────────────────────────────────────────────────────
+  function renderAddClient() {
+    var html = '<div class="page-title">Add New Client</div><div class="page-sub">Create a new business account</div>';
+    html += '<div class="card" style="max-width:560px">';
+    html += '<div class="card-title">Business Information</div>';
+    html += '<div class="grid-2">';
+    html += '<div class="form-group"><label class="form-label">Business Name *</label><input class="form-input" id="new-biz" placeholder="Moss Run PT"></div>';
+    html += '<div class="form-group"><label class="form-label">Owner Name</label><input class="form-input" id="new-owner" placeholder="Dr. Jack Moss"></div>';
+    html += '<div class="form-group"><label class="form-label">Email</label><input class="form-input" id="new-email" type="email" placeholder="owner@business.com"></div>';
+    html += '<div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="new-phone" placeholder="+1 (913) 555-0100"></div>';
+    html += '</div>';
+    html += '<div class="grid-2">';
+    html += '<div class="form-group"><label class="form-label">Plan</label><select class="form-input" id="new-plan"><option value="starter">Starter — $149/mo</option><option value="growth">Growth — $249/mo</option><option value="pro">Pro — $399/mo</option></select></div>';
+    html += '<div class="form-group"><label class="form-label">AI Tone</label><select class="form-input" id="new-tone"><option value="professional">Professional</option><option value="friendly">Friendly</option><option value="empathetic">Empathetic</option></select></div>';
+    html += '</div>';
+    html += '<div class="form-group"><label class="form-label">Google Review Link</label><input class="form-input" id="new-review-link" placeholder="https://g.page/r/their-google-review-link"></div>';
+    html += '<hr class="divider">';
+    html += '<div class="flex gap-8">';
+    html += '<button class="btn btn-primary btn-lg" onclick="createClient()">Create Client →</button>';
+    html += '<button class="btn btn-ghost" onclick="showPage(\'clients\')">Cancel</button>';
+    html += '</div></div>';
+    document.getElementById('content').innerHTML = html;
+  }
+
+  async function createClient() {
+    var biz = document.getElementById('new-biz').value.trim();
+    if (!biz) { toast('Business name is required', 'error'); return; }
+    var data = await api('POST', '/clients', {
+      business_name: biz,
+      owner_name: document.getElementById('new-owner').value.trim(),
+      email: document.getElementById('new-email').value.trim(),
+      phone: document.getElementById('new-phone').value.trim(),
+      plan: document.getElementById('new-plan').value,
+      tone: document.getElementById('new-tone').value,
+      review_link: document.getElementById('new-review-link').value.trim(),
+    });
+    if (data && data.client) {
+      allClients.push(data.client);
+      toast(biz + ' created successfully!');
+      viewClient(data.client.id);
+    } else {
+      toast('Failed to create client', 'error');
+    }
+  }
+
+  // ── VIEW CLIENT ─────────────────────────────────────────────────────────────
+  async function viewClient(clientId) {
+    selectedClientId = clientId;
+    var client = allClients.find(function(c) { return c.id === clientId; });
+    if (!client) return;
+
+    var stats = await api('GET', '/clients/' + clientId + '/stats') || {};
+    var customers = await api('GET', '/clients/' + clientId + '/customers') || { customers: [] };
+    var formUrl = 'https://reviewiq-backend-production.up.railway.app/api/form/' + clientId;
+
+    var html = '<div class="flex-between" style="margin-bottom:20px">';
+    html += '<div><button class="btn btn-ghost btn-sm" onclick="showPage(\'clients\')" style="margin-bottom:8px">← Back</button><div class="page-title">' + client.business_name + '</div><div class="page-sub">' + (client.plan || 'starter').toUpperCase() + ' plan · ' + (client.email || '') + '</div></div>';
+    html += '<div class="flex gap-8"><button class="btn btn-ghost btn-sm" onclick="openBranding(\'' + clientId + '\',\'' + client.business_name + '\')">🎨 Branding</button><button class="btn btn-ghost btn-sm" onclick="window.open(\'' + formUrl + '\',\'_blank\')">👁 Preview Form</button></div>';
+    html += '</div>';
+
+    // Stats row
+    html += '<div class="grid-4" style="margin-bottom:20px">';
+    html += '<div class="stat"><div class="stat-label">Total Reviews</div><div class="stat-value" style="color:#F59E0B">' + (stats.totalReviews || 0) + '</div></div>';
+    html += '<div class="stat"><div class="stat-label">Avg Rating</div><div class="stat-value" style="color:#10B981">' + (stats.avgRating || '--') + '</div></div>';
+    html += '<div class="stat"><div class="stat-label">Response Rate</div><div class="stat-value" style="color:#6366F1">' + (stats.responseRate || 0) + '%</div></div>';
+    html += '<div class="stat"><div class="stat-label">Pending Screening</div><div class="stat-value" style="color:#EF4444">' + (stats.pendingScreening || 0) + '</div></div>';
+    html += '</div>';
+
+    // Review form link
+    html += '<div class="card" style="margin-bottom:16px">';
+    html += '<div class="card-title">📎 Review Form Link — Share This With The Business</div>';
+    html += '<div class="copy-url" onclick="copyText(\'' + formUrl + '\')" style="margin-bottom:10px">' + formUrl + '</div>';
+    html += '<div class="flex gap-8"><button class="btn btn-primary btn-sm" onclick="copyText(\'' + formUrl + '\')">📋 Copy Link</button><button class="btn btn-ghost btn-sm" onclick="window.open(\'' + formUrl + '\',\'_blank\')">👁 Open Form</button></div>';
+    html += '</div>';
+
+    // Add customer
+    html += '<div class="card" style="margin-bottom:16px">';
+    html += '<div class="card-title">Add Customer to Review Queue</div>';
+    html += '<div class="grid-2" style="margin-bottom:12px">';
+    html += '<div class="form-group" style="margin:0"><label class="form-label">Full Name *</label><input class="form-input" id="c-name" placeholder="David Chen"></div>';
+    html += '<div class="form-group" style="margin:0"><label class="form-label">Service *</label><input class="form-input" id="c-service" placeholder="Initial Evaluation"></div>';
+    html += '<div class="form-group" style="margin:0"><label class="form-label">Phone</label><input class="form-input" id="c-phone" placeholder="+1 (913) 555-0100"></div>';
+    html += '<div class="form-group" style="margin:0"><label class="form-label">Email</label><input class="form-input" id="c-email" placeholder="patient@email.com"></div>';
+    html += '</div>';
+    html += '<button class="btn btn-primary btn-sm" onclick="addCustomer(\'' + clientId + '\')">+ Add to Queue</button>';
+    html += '</div>';
+
+    // Customer queue
+    html += '<div class="card">';
+    html += '<div class="flex-between" style="margin-bottom:14px"><div class="card-title" style="margin:0">Customer Queue (' + customers.customers.length + ')</div></div>';
+    if (customers.customers.length === 0) {
+      html += '<div class="empty"><div class="empty-icon">👥</div><div>No customers yet — add one above</div></div>';
+    } else {
+      html += '<table class="table"><thead><tr><th>Name</th><th>Service</th><th>Contact</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+      customers.customers.forEach(function(c) {
+        html += '<tr>';
+        html += '<td><div class="flex gap-8">' + avatar(c.name, 30) + '<span style="font-weight:600">' + c.name + '</span></div></td>';
+        html += '<td style="color:#94A3B8">' + (c.service || '--') + '</td>';
+        html += '<td style="color:#94A3B8;font-size:11px">' + (c.phone || c.email || 'No contact') + '</td>';
+        var badgeClass = c.request_status === 'reviewed' ? 'badge-green' : c.request_status === 'sent' || c.request_status === 'opened' ? 'badge-blue' : 'badge-amber';
+        html += '<td><span class="badge ' + badgeClass + '">' + (c.request_status || 'scheduled').toUpperCase() + '</span></td>';
+        html += '<td>';
+        if (c.request_status === 'scheduled') {
+          html += '<div class="flex gap-8">';
+          if (c.phone) html += '<button class="btn btn-ghost btn-sm" onclick="sendRequest(\'' + c.id + '\',\'sms\')">📱 SMS</button>';
+          if (c.email) html += '<button class="btn btn-ghost btn-sm" onclick="sendRequest(\'' + c.id + '\',\'email\')">✉️ Email</button>';
+          html += '</div>';
+        } else {
+          html += '<span style="color:#10B981;font-size:12px">✓ Sent</span>';
+        }
+        html += '</td></tr>';
+      });
+      html += '</tbody></table>';
+    }
+    html += '</div>';
+
+    document.getElementById('content').innerHTML = html;
+    document.querySelectorAll('.nav-btn').forEach(function(b) { b.classList.remove('active'); });
+  }
+
+  async function addCustomer(clientId) {
+    var name = document.getElementById('c-name').value.trim();
+    var service = document.getElementById('c-service').value.trim();
+    if (!name || !service) { toast('Name and service are required', 'error'); return; }
+    var data = await api('POST', '/clients/' + clientId + '/customers', {
+      name: name, service: service,
+      phone: document.getElementById('c-phone').value.trim(),
+      email: document.getElementById('c-email').value.trim(),
+    });
+    if (data && data.customer) {
+      toast(name + ' added to queue!');
+      viewClient(clientId);
+    } else {
+      toast('Failed to add customer', 'error');
+    }
+  }
+
+  async function sendRequest(customerId, channel) {
+    toast('Sending ' + channel.toUpperCase() + ' request...');
+    var data = await api('POST', '/customers/' + customerId + '/send-request', { channel: channel });
+    if (data && data.success) {
+      toast('Review request sent via ' + channel + '!');
+      if (selectedClientId) viewClient(selectedClientId);
+    } else {
+      toast('Failed to send — check Twilio settings', 'error');
+    }
+  }
+
+  // ── BRANDING MODAL ──────────────────────────────────────────────────────────
+  function openBranding(clientId, bizName) {
+    var modal = document.createElement('div');
+    modal.className = 'modal-overlay';
+    modal.id = 'branding-modal';
+    modal.innerHTML = '<div class="modal"><div class="modal-title">🎨 Branding — ' + bizName + '<button class="close-btn" onclick="document.getElementById(\'branding-modal\').remove()">✕</button></div><div class="form-group"><label class="form-label">Logo URL</label><input class="form-input" id="b-logo" placeholder="https://their-website.com/logo.png"></div><div class="form-group"><label class="form-label">Brand Color</label><div class="flex gap-8"><input type="color" id="b-color" value="#6366F1"><input class="form-input" id="b-color-hex" value="#6366F1" style="flex:1"></div></div><div style="font-size:11px;color:#64748B;margin-bottom:16px;line-height:1.6">The logo URL should be a direct link to their logo image. You can get this from their website by right-clicking their logo → Copy image address.</div><div class="flex gap-8"><button class="btn btn-primary" onclick="saveBranding(\'' + clientId + '\')">Save Branding</button><button class="btn btn-ghost" onclick="document.getElementById(\'branding-modal\').remove()">Cancel</button></div></div>';
+    document.body.appendChild(modal);
+    document.getElementById('b-color').addEventListener('input', function() { document.getElementById('b-color-hex').value = this.value; });
+    document.getElementById('b-color-hex').addEventListener('input', function() { document.getElementById('b-color').value = this.value; });
+  }
+
+  async function saveBranding(clientId) {
+    var logoUrl = document.getElementById('b-logo').value.trim();
+    var brandColor = document.getElementById('b-color-hex').value.trim();
+    var data = await api('PUT', '/clients/' + clientId + '/branding', { logo_url: logoUrl, brand_color: brandColor });
+    if (data && data.client) {
+      toast('Branding updated!');
+      document.getElementById('branding-modal').remove();
+    } else {
+      toast('Failed to update branding', 'error');
+    }
+  }
+
+  // ── SCREENING ───────────────────────────────────────────────────────────────
+  async function renderScreening() {
+    var html = '<div class="page-title">Screening Queue</div><div class="page-sub">5-star reviews awaiting approval across all clients</div>';
+    var allPending = [];
+    for (var i = 0; i < allClients.length; i++) {
+      var data = await api('GET', '/clients/' + allClients[i].id + '/screening');
+      if (data && data.queue) {
+        data.queue.filter(function(s) { return s.approved === null; }).forEach(function(s) {
+          s.clientName = allClients[i].business_name;
+          allPending.push(s);
+        });
+      }
+    }
+    if (allPending.length === 0) {
+      html += '<div class="card"><div class="empty"><div class="empty-icon">⚑</div><div style="font-size:15px;font-weight:600;margin-bottom:4px">All clear!</div><div>No reviews waiting for approval</div></div></div>';
+    } else {
+      allPending.forEach(function(s) {
+        html += '<div class="card">';
+        html += '<div style="font-size:10px;color:#6366F1;font-weight:700;margin-bottom:10px">' + s.clientName.toUpperCase() + '</div>';
+        html += '<div class="flex gap-12" style="margin-bottom:12px">';
+        html += avatar(s.author, 44);
+        html += '<div><div class="flex gap-8" style="margin-bottom:4px"><span style="font-weight:700;font-size:14px">' + s.author + '</span>' + stars(s.rating) + '<span class="badge badge-green">★ 5-Star</span></div>';
+        html += '<div style="font-size:11px;color:#64748B">' + (s.service || '') + ' · ' + s.submitted_at + '</div></div></div>';
+        html += '<div style="background:#0A0F1E;border-radius:8px;padding:14px;font-size:13px;color:#CBD5E1;line-height:1.6;font-style:italic;margin-bottom:14px">"' + s.text + '"</div>';
+        html += '<div class="flex gap-8"><button class="btn btn-success btn-sm" onclick="approveReview(\'' + s.id + '\')">✓ Approve & Post</button><button class="btn btn-danger btn-sm" onclick="rejectReview(\'' + s.id + '\')">✕ Decline</button></div>';
+        html += '</div>';
+      });
+    }
+    document.getElementById('content').innerHTML = html;
+  }
+
+  async function approveReview(id) {
+    var data = await api('POST', '/screening/' + id + '/approve');
+    if (data && data.success) { toast('Review approved!'); renderScreening(); }
+    else { toast('Failed', 'error'); }
+  }
+
+  async function rejectReview(id) {
+    var data = await api('POST', '/screening/' + id + '/reject');
+    if (data && data.success) { toast('Review declined'); renderScreening(); }
+    else { toast('Failed', 'error'); }
+  }
+
+  // ── REVIEWS ─────────────────────────────────────────────────────────────────
+  async function renderReviews() {
+    var html = '<div class="page-title">Reviews</div><div class="page-sub">Incoming Google reviews across all clients</div>';
+    if (allClients.length === 0) {
+      html += '<div class="card"><div class="empty"><div class="empty-icon">★</div><div>No clients yet</div></div></div>';
+      document.getElementById('content').innerHTML = html;
+      return;
+    }
+    // Show client selector
+    html += '<div class="card" style="margin-bottom:16px"><div class="card-title">Select Client</div><div class="flex gap-8">';
+    allClients.forEach(function(c) {
+      html += '<button class="btn ' + (selectedClientId === c.id ? 'btn-primary' : 'btn-ghost') + ' btn-sm" onclick="loadReviews(\'' + c.id + '\')">' + c.business_name + '</button>';
+    });
+    html += '</div></div>';
+    html += '<div id="reviews-content"></div>';
+    document.getElementById('content').innerHTML = html;
+    if (selectedClientId) loadReviews(selectedClientId);
+    else loadReviews(allClients[0].id);
+  }
+
+  async function loadReviews(clientId) {
+    selectedClientId = clientId;
+    var data = await api('GET', '/clients/' + clientId + '/reviews');
+    var reviews = data ? data.reviews : [];
+    var html = '';
+    if (reviews.length === 0) {
+      html = '<div class="card"><div class="empty"><div class="empty-icon">★</div><div>No reviews yet for this client</div></div></div>';
+    } else {
+      reviews.forEach(function(r) {
+        html += '<div class="card" style="margin-bottom:12px">';
+        html += '<div class="flex gap-12" style="margin-bottom:10px">';
+        html += avatar(r.author, 38);
+        html += '<div style="flex:1"><div class="flex gap-8" style="margin-bottom:4px"><span style="font-weight:700">' + r.author + '</span>' + stars(r.rating) + '<span class="badge ' + (r.status === 'published' ? 'badge-green' : r.status === 'draft' ? 'badge-indigo' : 'badge-amber') + '">' + r.status.toUpperCase() + '</span>' + (r.rating <= 2 ? '<span class="badge badge-red">⚠ Urgent</span>' : '') + '</div>';
+        html += '<div style="font-size:11px;color:#64748B">' + r.review_date + '</div></div></div>';
+        html += '<p style="color:#CBD5E1;font-size:13px;line-height:1.6;margin-bottom:12px">' + (r.text || '(No written review)') + '</p>';
+        if (r.ai_response) {
+          html += '<div style="background:#0A0F1E;border-radius:8px;padding:12px;border-left:3px solid #6366F1;margin-bottom:12px"><div style="font-size:10px;color:#A5B4FC;font-weight:700;margin-bottom:6px">⚡ AI RESPONSE DRAFT</div><div style="font-size:12px;color:#E2E8F0;line-height:1.7">' + r.ai_response + '</div></div>';
+        }
+        html += '<div class="flex gap-8">';
+        if (!r.ai_response) html += '<button class="btn btn-primary btn-sm" onclick="generateResponse(\'' + r.id + '\')">⚡ Generate AI Response</button>';
+        if (r.ai_response && r.status !== 'published') html += '<button class="btn btn-success btn-sm" onclick="publishResponse(\'' + r.id + '\')">✓ Publish to Google</button>';
+        if (r.status === 'published') html += '<span style="color:#10B981;font-size:12px;font-weight:600">✓ Published</span>';
+        html += '</div></div>';
+      });
+    }
+    html += '<div style="margin-top:16px"><button class="btn btn-ghost btn-sm" onclick="addTestReview(\'' + clientId + '\')">+ Add Test Review</button></div>';
+    var el = document.getElementById('reviews-content');
+    if (el) el.innerHTML = html;
+  }
+
+  async function generateResponse(reviewId) {
+    toast('Generating AI response...');
+    var data = await api('POST', '/reviews/' + reviewId + '/generate-response');
+    if (data && data.aiResponse) { toast('AI response ready!'); loadReviews(selectedClientId); }
+    else { toast('Failed — check Anthropic API key', 'error'); }
+  }
+
+  async function publishResponse(reviewId) {
+    var data = await api('POST', '/reviews/' + reviewId + '/publish');
+    if (data) { toast('Response published!'); loadReviews(selectedClientId); }
+    else { toast('Failed', 'error'); }
+  }
+
+  async function addTestReview(clientId) {
+    var data = await api('POST', '/clients/' + clientId + '/reviews', {
+      author: 'Test Patient', rating: 5,
+      text: 'Excellent experience! The staff was incredibly professional and caring. Highly recommend.',
+      review_date: new Date().toISOString(),
+    });
+    if (data) { toast('Test review added!'); loadReviews(clientId); }
+  }
+
+
+  // ── AUTH ────────────────────────────────────────────────────────────────────
+  var PASS = 'jemoss96';
+  function checkAuth() {
+    var saved = sessionStorage.getItem('iq_auth');
+    if (saved === PASS) {
+      document.getElementById('login-screen').style.display = 'none';
+      refreshAll();
+    }
+  }
+  function doLogin() {
+    var pwd = document.getElementById('login-pwd').value;
+    if (pwd === PASS) {
+      sessionStorage.setItem('iq_auth', pwd);
+      document.getElementById('login-screen').style.display = 'none';
+      refreshAll();
+    } else {
+      document.getElementById('login-error').style.display = 'block';
+      document.getElementById('login-pwd').value = '';
+      document.getElementById('login-pwd').focus();
+    }
+  }
+
+  // ── INIT ────────────────────────────────────────────────────────────────────
+  checkAuth();
+</script>
+</body>
+</html>
