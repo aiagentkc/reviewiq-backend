@@ -64,7 +64,7 @@ function generateReviewForm(clientId, bizName, logoUrl, brandColor) {
   html.push('  }');
   html.push('}');
   html.push('function chk(){');
-  html.push('  var ok=r>0&&document.getElementById("FN").value.trim().length>1&&document.getElementById("TX").value.trim().length>10;');
+  html.push('  var ok=r>0&&document.getElementById("FN").value.trim().length>1&&document.getElementById("TX").value.trim().length>2;');
   html.push('  document.getElementById("BT").disabled=!ok;');
   html.push('}');
   html.push('for(var i=1;i<=5;i++){');
